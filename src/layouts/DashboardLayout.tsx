@@ -9,6 +9,7 @@ import {
   History,
   CheckSquare,
   Rocket,
+  Award,
 } from 'lucide-react';
 
 const navItems = [
@@ -20,6 +21,7 @@ const navItems = [
   { to: '/dashboard/resources', icon: FolderOpen, label: 'Resources' },
   { to: '/dashboard/profile', icon: User, label: 'Profile' },
   { to: '/dashboard/test', icon: CheckSquare, label: 'Test' },
+  { to: '/dashboard/proof', icon: Award, label: 'Proof' },
   { to: '/dashboard/ship', icon: Rocket, label: 'Ship' },
 ];
 

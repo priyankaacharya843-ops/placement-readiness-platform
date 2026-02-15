@@ -10,6 +10,7 @@ import ResultsPage from './pages/ResultsPage';
 import HistoryPage from './pages/HistoryPage';
 import TestChecklistPage from './pages/TestChecklistPage';
 import ShipPage from './pages/ShipPage';
+import ProofPage from './pages/ProofPage';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="profile" element={<ProfilePage />} />
           <Route path="test" element={<TestChecklistPage />} />
           <Route path="ship" element={<ShipPage />} />
+          <Route path="proof" element={<ProofPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
