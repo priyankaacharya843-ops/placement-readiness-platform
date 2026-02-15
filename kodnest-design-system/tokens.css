@@ -1,0 +1,53 @@
+/**
+ * KodNest Premium Build System — Design Tokens
+ * Calm, intentional, coherent. Maximum 4 colors. No visual drift.
+ */
+
+:root {
+  /* ——— Color (4 only) ——— */
+  --kn-background: #F7F6F3;
+  --kn-text: #111111;
+  --kn-accent: #8B0000;
+  --kn-muted: #6B6B6B;
+
+  /* Semantic (derived from muted, not extra colors) */
+  --kn-success: #4A5D4A;
+  --kn-warning: #7D6B3D;
+
+  /* Borders and dividers (from muted) */
+  --kn-border: #D4D2CE;
+  --kn-border-focus: #8B0000;
+
+  /* ——— Typography ——— */
+  --kn-font-serif: "Lora", "Georgia", serif;
+  --kn-font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+
+  --kn-size-headline: 2.25rem;
+  --kn-size-subhead: 1.125rem;
+  --kn-size-body: 1rem;
+  --kn-size-body-large: 1.125rem;
+  --kn-size-small: 0.875rem;
+  --kn-size-caption: 0.8125rem;
+
+  --kn-line-tight: 1.35;
+  --kn-line-body: 1.65;
+  --kn-line-loose: 1.8;
+
+  --kn-weight-normal: 400;
+  --kn-weight-medium: 500;
+  --kn-weight-semibold: 600;
+
+  /* Max width for text blocks */
+  --kn-text-max-width: 720px;
+
+  /* ——— Spacing (scale only) ——— */
+  --kn-space-1: 8px;
+  --kn-space-2: 16px;
+  --kn-space-3: 24px;
+  --kn-space-4: 40px;
+  --kn-space-5: 64px;
+
+  /* ——— Radii & motion ——— */
+  --kn-radius: 6px;
+  --kn-transition: 180ms ease-in-out;
+}
