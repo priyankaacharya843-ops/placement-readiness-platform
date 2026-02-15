@@ -14,13 +14,18 @@ export default function AssessmentsPage() {
   const [jdText, setJdText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');
+  const [shortJdWarning, setShortJdWarning] = useState(false);
 
   const handleAnalyze = () => {
     setError('');
+    setShortJdWarning(false);
     const trimmed = jdText.trim();
     if (!trimmed) {
       setError('Please paste the job description text.');
       return;
+    }
+    if (trimmed.length < 200) {
+      setShortJdWarning(true);
     }
     setIsAnalyzing(true);
     try {
@@ -32,8 +37,8 @@ export default function AssessmentsPage() {
         ? buildRoundMapping(company, result.extractedSkills)
         : undefined;
       const entry = saveToHistory({
-        company,
-        role,
+        company: company ?? '',
+        role: role ?? '',
         jdText: trimmed,
         extractedSkills: result.extractedSkills,
         plan: result.plan,
@@ -105,6 +110,11 @@ export default function AssessmentsPage() {
             />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
+          {shortJdWarning && (
+            <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              This JD is too short to analyze deeply. Paste full JD for better output.
+            </p>
+          )}
           <button
             type="button"
             onClick={handleAnalyze}

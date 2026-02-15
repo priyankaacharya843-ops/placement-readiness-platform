@@ -3,39 +3,18 @@ import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { getEntryById, getLatestEntry, updateHistoryEntry, type HistoryEntry, type SkillConfidence } from '../lib/history';
 import { buildCompanyIntel, buildRoundMapping } from '../lib/companyIntel';
+import { getAllSkillsFromStrict, getSkillsWithCategory, computeFinalScore, strictToByCategory } from '../lib/schema';
 import { Link } from 'react-router-dom';
 import { Copy, Download } from 'lucide-react';
 
-function getAllSkills(entry: HistoryEntry): { category: string; skill: string }[] {
-  const out: { category: string; skill: string }[] = [];
-  for (const [category, skills] of Object.entries(entry.extractedSkills.byCategory)) {
-    for (const skill of skills) {
-      out.push({ category, skill });
-    }
-  }
-  return out;
-}
-
 function getConfidence(entry: HistoryEntry, skill: string): SkillConfidence {
-  return entry.skillConfidenceMap?.[skill] ?? 'practice';
+  return entry.skillConfidenceMap[skill] ?? 'practice';
 }
 
-function computeLiveScore(entry: HistoryEntry): number {
-  const base = entry.readinessScore;
-  const skills = getAllSkills(entry);
-  let delta = 0;
-  for (const { skill } of skills) {
-    const c = getConfidence(entry, skill);
-    if (c === 'know') delta += 2;
-    else delta -= 2;
-  }
-  return Math.max(0, Math.min(100, base + delta));
-}
-
-function formatPlanAsText(plan: HistoryEntry['plan']): string {
-  return plan
-    .map(({ day, title, tasks }) => {
-      const header = `Day ${day}: ${title}`;
+function formatPlanAsText(plan7Days: HistoryEntry['plan7Days']): string {
+  return plan7Days
+    .map(({ day, focus, tasks }) => {
+      const header = `Day ${day}: ${focus}`;
       const list = tasks.map(t => `  • ${t}`).join('\n');
       return `${header}\n${list}`;
     })
@@ -44,10 +23,9 @@ function formatPlanAsText(plan: HistoryEntry['plan']): string {
 
 function formatChecklistAsText(checklist: HistoryEntry['checklist']): string {
   return checklist
-    .map(({ round, items }) => {
-      const header = round;
+    .map(({ roundTitle, items }) => {
       const list = items.map(i => `  • ${i}`).join('\n');
-      return `${header}\n${list}`;
+      return `${roundTitle}\n${list}`;
     })
     .join('\n\n');
 }
@@ -79,9 +57,11 @@ export default function ResultsPage() {
     (skill: string, value: SkillConfidence) => {
       if (!entry) return;
       const nextMap = { ...entry.skillConfidenceMap, [skill]: value };
-      const next: HistoryEntry = { ...entry, skillConfidenceMap: nextMap };
+      const allSkills = getAllSkillsFromStrict(entry.extractedSkills);
+      const finalScore = computeFinalScore(entry.baseScore, nextMap, allSkills);
+      const next: HistoryEntry = { ...entry, skillConfidenceMap: nextMap, finalScore, updatedAt: new Date().toISOString() };
       setEntry(next);
-      updateHistoryEntry(entry.id, { skillConfidenceMap: nextMap });
+      updateHistoryEntry(entry.id, { skillConfidenceMap: nextMap, finalScore });
     },
     [entry]
   );
@@ -101,16 +81,16 @@ export default function ResultsPage() {
     if (!entry) return;
     const sections = [
       '=== Readiness Score ===',
-      String(computeLiveScore(entry)),
+      String(entry.finalScore),
       '',
       '=== Key skills ===',
-      ...getAllSkills(entry).map(({ category, skill }) => `${category}: ${skill}`),
+      ...getSkillsWithCategory(entry.extractedSkills).map(({ category, skill }) => `${category}: ${skill}`),
       '',
       '=== Round-wise checklist ===',
       formatChecklistAsText(entry.checklist),
       '',
       '=== 7-day plan ===',
-      formatPlanAsText(entry.plan),
+      formatPlanAsText(entry.plan7Days),
       '',
       '=== 10 likely questions ===',
       formatQuestionsAsText(entry.questions),
@@ -142,17 +122,20 @@ export default function ResultsPage() {
     );
   }
 
-  const liveScore = computeLiveScore(entry);
+  const finalScore = entry.finalScore;
   const circleRadius = 45;
   const circumference = 2 * Math.PI * circleRadius;
-  const strokeDashoffset = circumference - (liveScore / 100) * circumference;
-  const { company, role, extractedSkills, checklist, plan, questions } = entry;
-  const allSkills = getAllSkills(entry);
-  const practiceSkills = allSkills.filter(({ skill }) => getConfidence(entry, skill) === 'practice').map(({ skill }) => skill);
+  const strokeDashoffset = circumference - (finalScore / 100) * circumference;
+  const { company, role, extractedSkills, checklist, plan7Days, questions, roundMapping: storedRoundMapping } = entry;
+  const skillsWithCategory = getSkillsWithCategory(extractedSkills);
+  const practiceSkills = skillsWithCategory.filter(({ skill }) => getConfidence(entry, skill) === 'practice').map(({ skill }) => skill);
   const top3Weak = practiceSkills.slice(0, 3);
 
   const companyIntel = entry.companyIntel ?? (company.trim() ? buildCompanyIntel(company, entry.jdText) : null);
-  const roundMapping = entry.roundMapping ?? (company.trim() ? buildRoundMapping(company, extractedSkills) : null);
+  const roundMappingLegacy = company.trim() ? buildRoundMapping(company, { byCategory: strictToByCategory(extractedSkills), generalFresher: false }) : null;
+  const roundMapping = storedRoundMapping?.length
+    ? storedRoundMapping
+    : (roundMappingLegacy?.map((r) => ({ round: r.round, roundTitle: r.title, focusAreas: [r.description], whyItMatters: r.whyItMatters })) ?? []);
 
   return (
     <div className="space-y-6">
@@ -216,8 +199,8 @@ export default function ResultsPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0 pt-0.5">
-                    <h4 className="font-medium text-gray-900">{r.title}</h4>
-                    <p className="text-sm text-gray-600 mt-0.5">{r.description}</p>
+                    <h4 className="font-medium text-gray-900">{r.roundTitle}</h4>
+                    {r.focusAreas?.length ? <p className="text-sm text-gray-600 mt-0.5">{r.focusAreas[0]}</p> : null}
                     <p className="text-xs text-gray-500 mt-2 italic">Why this round matters: {r.whyItMatters}</p>
                   </div>
                 </div>
@@ -236,7 +219,7 @@ export default function ResultsPage() {
               <circle cx="50" cy="50" r={circleRadius} fill="none" stroke="hsl(245, 58%, 51%)" strokeWidth="8" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-bold text-gray-900">{liveScore}</span>
+              <span className="text-2xl font-bold text-gray-900">{finalScore}</span>
               <span className="text-gray-500 text-xs">/ 100</span>
             </div>
           </div>
@@ -247,7 +230,13 @@ export default function ResultsPage() {
         <CardHeader><CardTitle>Key skills extracted</CardTitle></CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {Object.entries(extractedSkills.byCategory).map(([category, skills]) => (
+            {skillsWithCategory.length > 0 && (() => {
+            const byCat = skillsWithCategory.reduce((acc, { category, skill }) => {
+              if (!acc[category]) acc[category] = [];
+              acc[category].push(skill);
+              return acc;
+            }, {} as Record<string, string[]>);
+            return Object.entries(byCat).map(([category, skills]) => (
               <div key={category} className="flex flex-wrap items-center gap-1.5">
                 <span className="text-xs font-medium text-gray-500 w-full sm:w-auto">{category}:</span>
                 {skills.map((skill) => {
@@ -275,7 +264,8 @@ export default function ResultsPage() {
                   );
                 })}
               </div>
-            ))}
+            ));
+          })()}
           </div>
         </CardContent>
       </Card>
@@ -283,9 +273,9 @@ export default function ResultsPage() {
       <Card>
         <CardHeader><CardTitle>Round-wise preparation checklist</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          {checklist.map(({ round, items }) => (
-            <div key={round}>
-              <h4 className="font-medium text-gray-900 mb-2">{round}</h4>
+          {checklist.map(({ roundTitle, items }) => (
+            <div key={roundTitle}>
+              <h4 className="font-medium text-gray-900 mb-2">{roundTitle}</h4>
               <ul className="list-disc list-inside space-y-1 text-gray-600 text-sm">
                 {items.map((item, i) => <li key={i}>{item}</li>)}
               </ul>
@@ -297,9 +287,9 @@ export default function ResultsPage() {
       <Card>
         <CardHeader><CardTitle>7-day plan</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          {plan.map(({ day, title, tasks }) => (
+          {plan7Days.map(({ day, focus, tasks }) => (
             <div key={day} className="border-l-2 border-primary/30 pl-4">
-              <h4 className="font-medium text-gray-900">Day {day}: {title}</h4>
+              <h4 className="font-medium text-gray-900">Day {day}: {focus}</h4>
               <ul className="list-disc list-inside space-y-0.5 text-gray-600 text-sm mt-1">
                 {tasks.map((t, i) => <li key={i}>{t}</li>)}
               </ul>
@@ -322,7 +312,7 @@ export default function ResultsPage() {
         <CardContent className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => copyToClipboard(formatPlanAsText(plan), '7-day plan')}
+            onClick={() => copyToClipboard(formatPlanAsText(plan7Days), '7-day plan')}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <Copy className="w-4 h-4" />
@@ -338,7 +328,7 @@ export default function ResultsPage() {
           </button>
           <button
             type="button"
-            onClick={() => copyToClipboard(formatQuestionsAsText(questions), '10 questions')}
+            onClick={() => copyToClipboard(formatQuestionsAsText(entry.questions), '10 questions')}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <Copy className="w-4 h-4" />

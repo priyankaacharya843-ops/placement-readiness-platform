@@ -3,37 +3,36 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/card';
 import { FileText } from 'lucide-react';
 
-type HistoryEntry = {
+type HistoryListItem = {
   id: string;
   createdAt: string;
   company: string;
   role: string;
-  readinessScore: number;
+  finalScore: number;
 };
 
 export default function HistoryPage() {
-  const [entries, setEntries] = useState<HistoryEntry[]>([]);
+  const [entries, setEntries] = useState<HistoryListItem[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [corruptedCount, setCorruptedCount] = useState(0);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const { getHistory } = await import('../lib/history');
-        const list = getHistory();
-        const valid = Array.isArray(list)
-          ? list.filter(
-              (e: unknown): e is HistoryEntry =>
-                typeof e === 'object' &&
-                e !== null &&
-                typeof (e as HistoryEntry).id === 'string' &&
-                typeof (e as HistoryEntry).createdAt === 'string' &&
-                typeof (e as HistoryEntry).readinessScore === 'number'
-            )
-          : [];
+        const { getHistoryWithMeta } = await import('../lib/history');
+        const { entries: list, corruptedCount: skipped } = getHistoryWithMeta();
+        const valid: HistoryListItem[] = list.map((e) => ({
+          id: e.id,
+          createdAt: e.createdAt,
+          company: e.company,
+          role: e.role,
+          finalScore: e.finalScore,
+        }));
         if (mounted) {
           setEntries(valid);
+          setCorruptedCount(skipped);
           setError(null);
         }
       } catch (e) {
@@ -61,6 +60,12 @@ export default function HistoryPage() {
 
       {error && (
         <p className="text-sm text-red-600">{error}</p>
+      )}
+
+      {corruptedCount > 0 && (
+        <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          One saved entry couldn&apos;t be loaded. Create a new analysis.
+        </p>
       )}
 
       {!loaded ? (
@@ -106,7 +111,7 @@ export default function HistoryPage() {
                   </div>
                   <div className="shrink-0">
                     <span className="inline-flex items-center rounded-full bg-primary-light px-2.5 py-0.5 text-sm font-medium text-primary">
-                      {entry.readinessScore} score
+                      {entry.finalScore} score
                     </span>
                   </div>
                 </div>
