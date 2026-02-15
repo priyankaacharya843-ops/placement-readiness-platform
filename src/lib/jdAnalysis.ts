@@ -62,7 +62,7 @@ export function extractSkills(jdText: string): ExtractedSkills {
     return re.test(jdText);
   };
 
-  for (const [key, config] of Object.entries(SKILL_CATEGORIES)) {
+  for (const [, config] of Object.entries(SKILL_CATEGORIES)) {
     const found: string[] = [];
     for (const kw of config.keywords) {
       const kwLower = kw.toLowerCase();
@@ -171,7 +171,6 @@ export function buildSevenDayPlan(extracted: ExtractedSkills): DayPlanItem[] {
   const hasDSA = (byCategory['Core CS']?.length ?? 0) > 0;
   const hasWeb = (byCategory['Web']?.length ?? 0) > 0;
   const hasData = (byCategory['Data']?.length ?? 0) > 0;
-  const hasLang = (byCategory['Languages']?.length ?? 0) > 0;
 
   const plan: DayPlanItem[] = [
     {
