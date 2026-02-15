@@ -3,14 +3,18 @@ import {
   LayoutDashboard,
   BookOpen,
   ClipboardCheck,
+  FileCheck,
   FolderOpen,
   User,
+  History,
 } from 'lucide-react';
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/dashboard/practice', icon: BookOpen, label: 'Practice' },
   { to: '/dashboard/assessments', icon: ClipboardCheck, label: 'Assessments' },
+  { to: '/dashboard/results', icon: FileCheck, label: 'Results' },
+  { to: '/dashboard/history', icon: History, label: 'History' },
   { to: '/dashboard/resources', icon: FolderOpen, label: 'Resources' },
   { to: '/dashboard/profile', icon: User, label: 'Profile' },
 ];
@@ -49,7 +53,7 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 min-h-0 p-6 overflow-auto">
           <Outlet />
         </main>
       </div>

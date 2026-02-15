@@ -6,6 +6,8 @@ import PracticePage from './pages/PracticePage';
 import AssessmentsPage from './pages/AssessmentsPage';
 import ResourcesPage from './pages/ResourcesPage';
 import ProfilePage from './pages/ProfilePage';
+import ResultsPage from './pages/ResultsPage';
+import HistoryPage from './pages/HistoryPage';
 
 export default function App() {
   return (
@@ -16,6 +18,8 @@ export default function App() {
           <Route index element={<DashboardPage />} />
           <Route path="practice" element={<PracticePage />} />
           <Route path="assessments" element={<AssessmentsPage />} />
+          <Route path="results" element={<ResultsPage />} />
+          <Route path="history" element={<HistoryPage />} />
           <Route path="resources" element={<ResourcesPage />} />
           <Route path="profile" element={<ProfilePage />} />
         </Route>
