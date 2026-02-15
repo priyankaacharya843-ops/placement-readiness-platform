@@ -8,6 +8,8 @@ import ResourcesPage from './pages/ResourcesPage';
 import ProfilePage from './pages/ProfilePage';
 import ResultsPage from './pages/ResultsPage';
 import HistoryPage from './pages/HistoryPage';
+import TestChecklistPage from './pages/TestChecklistPage';
+import ShipPage from './pages/ShipPage';
 
 export default function App() {
   return (
@@ -22,6 +24,8 @@ export default function App() {
           <Route path="history" element={<HistoryPage />} />
           <Route path="resources" element={<ResourcesPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="test" element={<TestChecklistPage />} />
+          <Route path="ship" element={<ShipPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -7,6 +7,8 @@ import {
   FolderOpen,
   User,
   History,
+  CheckSquare,
+  Rocket,
 } from 'lucide-react';
 
 const navItems = [
@@ -17,6 +19,8 @@ const navItems = [
   { to: '/dashboard/history', icon: History, label: 'History' },
   { to: '/dashboard/resources', icon: FolderOpen, label: 'Resources' },
   { to: '/dashboard/profile', icon: User, label: 'Profile' },
+  { to: '/dashboard/test', icon: CheckSquare, label: 'Test' },
+  { to: '/dashboard/ship', icon: Rocket, label: 'Ship' },
 ];
 
 export default function DashboardLayout() {
