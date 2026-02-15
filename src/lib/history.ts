@@ -7,6 +7,8 @@ import type { ExtractedSkills } from './jdAnalysis';
 
 const STORAGE_KEY = 'placement_readiness_history';
 
+export type SkillConfidence = 'know' | 'practice';
+
 export type HistoryEntry = {
   id: string;
   createdAt: string; // ISO
@@ -17,7 +19,8 @@ export type HistoryEntry = {
   plan: AnalysisResult['plan'];
   checklist: AnalysisResult['checklist'];
   questions: AnalysisResult['questions'];
-  readinessScore: number;
+  readinessScore: number; // base score (0–100)
+  skillConfidenceMap?: Record<string, SkillConfidence>; // skill -> "know" | "practice"
 };
 
 export function getHistory(): HistoryEntry[] {
@@ -55,4 +58,16 @@ export function saveToHistory(entry: Omit<HistoryEntry, 'id' | 'createdAt'>): Hi
   list.unshift(full);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   return full;
+}
+
+export function updateHistoryEntry(
+  id: string,
+  updates: Partial<Pick<HistoryEntry, 'skillConfidenceMap' | 'readinessScore'>>
+): void {
+  const list = getHistory();
+  const index = list.findIndex(e => e.id === id);
+  if (index === -1) return;
+  const next = { ...list[index], ...updates };
+  list[index] = next;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
