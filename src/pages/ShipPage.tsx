@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { AlertCircle, CheckCircle2, Lock, Rocket, Sparkles } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Lock, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const STORAGE_KEY = 'prp-test-checklist';
 const TEST_COUNT = 10;
 const PROOF_STORAGE_KEY = 'prp_final_submission';
-const STEPS_COUNT = 8;
 
 interface ChecklistItem {
   checked: boolean;

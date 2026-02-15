@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { AlertCircle, CheckCircle2, Copy, Lock, Unlock } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Copy, Lock } from 'lucide-react';
 
 const STORAGE_KEY = 'prp_final_submission';
 const TEST_CHECKLIST_KEY = 'prp-test-checklist';
