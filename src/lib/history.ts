@@ -4,6 +4,7 @@
 
 import type { AnalysisResult } from './jdAnalysis';
 import type { ExtractedSkills } from './jdAnalysis';
+import type { CompanyIntel, RoundMappingItem } from './companyIntel';
 
 const STORAGE_KEY = 'placement_readiness_history';
 
@@ -20,7 +21,9 @@ export type HistoryEntry = {
   checklist: AnalysisResult['checklist'];
   questions: AnalysisResult['questions'];
   readinessScore: number; // base score (0–100)
-  skillConfidenceMap?: Record<string, SkillConfidence>; // skill -> "know" | "practice"
+  skillConfidenceMap?: Record<string, SkillConfidence>;
+  companyIntel?: CompanyIntel;
+  roundMapping?: RoundMappingItem[];
 };
 
 export function getHistory(): HistoryEntry[] {
@@ -62,7 +65,7 @@ export function saveToHistory(entry: Omit<HistoryEntry, 'id' | 'createdAt'>): Hi
 
 export function updateHistoryEntry(
   id: string,
-  updates: Partial<Pick<HistoryEntry, 'skillConfidenceMap' | 'readinessScore'>>
+  updates: Partial<Pick<HistoryEntry, 'skillConfidenceMap' | 'readinessScore' | 'companyIntel' | 'roundMapping'>>
 ): void {
   const list = getHistory();
   const index = list.findIndex(e => e.id === id);

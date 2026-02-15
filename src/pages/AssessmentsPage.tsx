@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { runAnalysis } from '../lib/jdAnalysis';
 import { saveToHistory } from '../lib/history';
+import { buildCompanyIntel, buildRoundMapping } from '../lib/companyIntel';
 import { History } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -24,6 +25,12 @@ export default function AssessmentsPage() {
     setIsAnalyzing(true);
     try {
       const result = runAnalysis(trimmed, company, role);
+      const companyIntel = company.trim()
+        ? buildCompanyIntel(company, trimmed)
+        : undefined;
+      const roundMapping = company.trim()
+        ? buildRoundMapping(company, result.extractedSkills)
+        : undefined;
       const entry = saveToHistory({
         company,
         role,
@@ -33,6 +40,8 @@ export default function AssessmentsPage() {
         checklist: result.checklist,
         questions: result.questions,
         readinessScore: result.readinessScore,
+        companyIntel,
+        roundMapping,
       });
       navigate(`/dashboard/results?id=${entry.id}`);
     } catch (e) {

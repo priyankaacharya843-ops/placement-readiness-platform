@@ -2,6 +2,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { getEntryById, getLatestEntry, updateHistoryEntry, type HistoryEntry, type SkillConfidence } from '../lib/history';
+import { buildCompanyIntel, buildRoundMapping } from '../lib/companyIntel';
 import { Link } from 'react-router-dom';
 import { Copy, Download } from 'lucide-react';
 
@@ -150,6 +151,9 @@ export default function ResultsPage() {
   const practiceSkills = allSkills.filter(({ skill }) => getConfidence(entry, skill) === 'practice').map(({ skill }) => skill);
   const top3Weak = practiceSkills.slice(0, 3);
 
+  const companyIntel = entry.companyIntel ?? (company.trim() ? buildCompanyIntel(company, entry.jdText) : null);
+  const roundMapping = entry.roundMapping ?? (company.trim() ? buildRoundMapping(company, extractedSkills) : null);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -160,6 +164,68 @@ export default function ResultsPage() {
       </div>
 
       {(company || role) && <p className="text-gray-600">{[company, role].filter(Boolean).join(' · ')}</p>}
+
+      {companyIntel && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Company intel</CardTitle>
+            <p className="text-xs text-gray-500 mt-1">Demo Mode: Company intel generated heuristically.</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Company</p>
+              <p className="text-gray-900">{companyIntel.companyName}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-700">Industry</p>
+              <p className="text-gray-600">{companyIntel.industry}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-700">Estimated size</p>
+              <p className="text-gray-600">
+                {companyIntel.sizeCategory}
+                {companyIntel.sizeCategory === 'Enterprise' && ' (2000+)'}
+                {companyIntel.sizeCategory === 'Mid-size' && ' (200–2000)'}
+                {companyIntel.sizeCategory === 'Startup' && ' (<200)'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-700">Typical hiring focus</p>
+              <p className="text-gray-600 text-sm">{companyIntel.typicalHiringFocus}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {roundMapping && roundMapping.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Round mapping</CardTitle>
+            <p className="text-xs text-gray-500 mt-1">Demo Mode: Company intel generated heuristically.</p>
+          </CardHeader>
+          <CardContent>
+            <div className="relative">
+              {roundMapping.map((r, i) => (
+                <div key={r.round} className="flex gap-4 pb-8 last:pb-0">
+                  <div className="flex flex-col items-center shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-medium">
+                      {r.round}
+                    </div>
+                    {i < roundMapping.length - 1 && (
+                      <div className="w-0.5 flex-1 min-h-[32px] bg-gray-200 mt-2" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <h4 className="font-medium text-gray-900">{r.title}</h4>
+                    <p className="text-sm text-gray-600 mt-0.5">{r.description}</p>
+                    <p className="text-xs text-gray-500 mt-2 italic">Why this round matters: {r.whyItMatters}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader><CardTitle>Readiness score</CardTitle></CardHeader>
